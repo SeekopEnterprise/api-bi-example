@@ -15,6 +15,22 @@ Instalar primero los paquetes indicados en **requirements.txt**
 ```bash
 api-bi-example$ pip install -r requirements.txt
 ```
+## Ejecucion
+
+Primero reemplaza los valores de las variables:
+
+- EMAIL_USER
+- PWD_USER
+- CLIENT_ID
+- SECRET_KEY
+
+Con las credenciales proporcionadas por el equipo de SEEKOP
+
+Una vez actualizadas solo ejecuta:
+
+```bash
+api-bi-example$ python src/app.py
+```
 
 ## Flujo de consumo
 
