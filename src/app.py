@@ -1,13 +1,14 @@
 import requests
 import json
 
-URL_AUTH_ENDPOINT = "https://api.sicopweb.com/auth/prod/token"
-URL_ENDPOINT_SERVICE = "https://api.sicopweb.com/bi/prod/indicadores/renault/nacional"
-
 EMAIL_USER = '<YOUR_EMAIL_USER>'
 PWD_USER   = '<YOUR_PWD_USER>'
 CLIENT_ID  = '<YOUR_CLIENT_ID>'
 SECRET_KEY = '<YOUR_SECRET_KEY>'
+MARCA      = '<YOUR_MARK>'
+
+URL_AUTH_ENDPOINT = "https://api.sicopweb.com/auth/prod/token"
+URL_ENDPOINT_SERVICE = f"https://api.sicopweb.com/bi/prod/indicadores/{MARCA}/nacional"
 
 class UserCredentials:
 
