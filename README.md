@@ -45,4 +45,4 @@ api-bi-example$ python src/app.py
 2. Crear encabezado **Authorization** con el valor del token de acceso obtenido
 3. Crear el payload de la petición.
 4. Ejecutar una primera consulta para obtener encabezados con informacion de paginación
-5. Si hay de una página como resultado se debe iterar usando un loop para obtener el resto de la informacion, cambiando de página con el parámetro **page**
+5. Si hay más de una página como resultado se debe iterar usando un loop para obtener el resto de la informacion, cambiando de página con el parámetro **page**
