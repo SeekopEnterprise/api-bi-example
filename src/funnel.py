@@ -1,5 +1,4 @@
 import requests
-import json
 
 EMAIL_USER = '<YOUR_EMAIL_USER>'
 PWD_USER   = '<YOUR_PWD_USER>'
@@ -56,23 +55,33 @@ def get_data(params, headers):
 user = UserCredentials(email=EMAIL_USER,pwd=PWD_USER)
 client = ClientCredentials(client_id=CLIENT_ID,secret_key=SECRET_KEY)
 
-#Obtenemos el token de acceso
+print("Obteniendo token de acceso...")
+# Obtenemos el token de acceso
 token = get_access_token(user, client)
 
-#Encabezados necesarios con token de acceso
+# Encabezados necesarios con token de acceso
 headers = {
   'Content-Type': 'application/json',
   'Authorization': f'Bearer {token}'
 }
 
+# Parametros de peticion
 params = {
     'origen':MARCA,
     'fbyfechaini':'20240901',
     'fbyfechafin':'20240930'
 }
+
+print("Solicitando datos...")
 response = get_data(params, headers)
 
-#Parseamos el resultado
+# Parseamos el resultado
 data = response.json()
-#Solo imprimir el total de elementos descargados en la iteraccion
+# Solo imprimir el total de elementos descargados en la iteraccion
 print(f'Total Items: {len(data)}')
+
+# Calculamos total de prospectos obtenidos
+total_prospectos = 0
+for row in data:
+    total_prospectos += int(row['prospectos'])
+print(f'Prospectos: {total_prospectos}')
