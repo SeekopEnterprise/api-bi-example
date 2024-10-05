@@ -7,7 +7,13 @@ Este es un ejemplo sencillo de un cliente en Python para consumo del API de indi
 Se  recomienda usar un entorno virtual para no afectar la instalación general de Python
 
 ```bash
-api-bi-example$ python3 -m venv .venv
+api-bi-example$ python -m venv .venv
+```
+
+Activar el entorno virtual
+
+```bash
+api-bi-example$ ./.venv/scripts/activate
 ```
 
 Instalar primero los paquetes indicados en **requirements.txt**
