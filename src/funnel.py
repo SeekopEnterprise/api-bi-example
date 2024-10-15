@@ -32,7 +32,7 @@ def get_access_token(userCredentials: UserCredentials, clientCredentials: Client
 
     # Encabezados de la solicitud
     headers = {
-        "Content-type": "application/x-www-form-urlencoded"
+        'Content-type': 'application/x-www-form-urlencoded'
     }
 
     # Realizar la petición POST
@@ -44,18 +44,18 @@ def get_access_token(userCredentials: UserCredentials, clientCredentials: Client
     respuesta_json = response.json()
         
     # Acceder a los datos devueltos
-    token = respuesta_json["token"]
+    token = respuesta_json['token']
 
     return token
 
 def get_data(params, headers):
-    response = requests.request("GET", URL_ENDPOINT_SERVICE, headers=headers, params=params)
+    response = requests.request('GET', URL_ENDPOINT_SERVICE, headers=headers, params=params)
     return response
 
 user = UserCredentials(email=EMAIL_USER,pwd=PWD_USER)
 client = ClientCredentials(client_id=CLIENT_ID,secret_key=SECRET_KEY)
 
-print("Obteniendo token de acceso...")
+print('Obteniendo token de acceso...')
 # Obtenemos el token de acceso
 token = get_access_token(user, client)
 
@@ -65,23 +65,50 @@ headers = {
   'Authorization': f'Bearer {token}'
 }
 
-# Parametros de peticion
-params = {
+# Primer peticion para obtener datos
+current_page = 1
+common_params = {
     'origen':MARCA,
-    'fbyfechaini':'20240901',
-    'fbyfechafin':'20240930'
+    'fbyfechaini':'20241001',
+    'fbyfechafin':'20241014'
+}
+params = common_params | {
+    'page': current_page
 }
 
-print("Solicitando datos...")
+fulldata = []
+print('Solicitando datos...')
 response = get_data(params, headers)
+total_pages = int(response.headers['x-sicop-api-pages'])
+current_page = int(response.headers['x-sicop-api-current-page'])
 
-# Parseamos el resultado
+#Parseamos el resultado
 data = response.json()
-# Solo imprimir el total de elementos descargados en la iteraccion
-print(f'Total Items: {len(data)}')
+fulldata.extend(data)
+#Solo imprimir el total de elementos descargados en la iteraccion
+print(f'Pagina: {current_page} de {total_pages}, Total Items: {len(data)}')
 
-# Calculamos total de prospectos obtenidos
+# Recorrido para obtener resto de paginas
+while(current_page < total_pages):
+    current_page = current_page + 1
+    params = common_params | {
+            'page': current_page
+    }
+    response = get_data(params, headers)
+    current_page = int(response.headers['x-sicop-api-current-page'])
+    #Parseamos el resultado
+    data = response.json()
+    #Solo imprimir el total de elementos descargados en la iteraccion
+    print(f'Pagina: {current_page} de {total_pages}, Total Items: {len(data)}')
+    fulldata.extend(data)
+
+print(f'Total Items: {len(fulldata)}')
+
+# Calculamos total de prospectos acumulados en fulldata
 total_prospectos = 0
-for row in data:
+total_prospectos_digitales = 0
+for row in fulldata:
     total_prospectos += int(row['prospectos'])
+    total_prospectos_digitales += int(row['leads'])
 print(f'Prospectos: {total_prospectos}')
+print(f'ProspectosDigitales: {total_prospectos_digitales}')
