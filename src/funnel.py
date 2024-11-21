@@ -1,4 +1,5 @@
 import requests
+import time
 
 EMAIL_USER = '<YOUR_EMAIL_USER>'
 PWD_USER   = '<YOUR_PWD_USER>'
@@ -52,6 +53,8 @@ def get_data(params, headers):
     response = requests.request('GET', URL_ENDPOINT_SERVICE, headers=headers, params=params)
     return response
 
+start_time = time.time()
+
 user = UserCredentials(email=EMAIL_USER,pwd=PWD_USER)
 client = ClientCredentials(client_id=CLIENT_ID,secret_key=SECRET_KEY)
 
@@ -70,7 +73,7 @@ current_page = 1
 common_params = {
     'origen':MARCA,
     'fbyfechaini':'20241001',
-    'fbyfechafin':'20241014'
+    'fbyfechafin':'20241031'
 }
 params = common_params | {
     'page': current_page
@@ -112,3 +115,7 @@ for row in fulldata:
     total_prospectos_digitales += int(row['leads'])
 print(f'Prospectos: {total_prospectos}')
 print(f'ProspectosDigitales: {total_prospectos_digitales}')
+
+total_time = time.time() - start_time
+
+print(f'Tiempo Total: {total_time} s')
