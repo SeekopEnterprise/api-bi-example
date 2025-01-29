@@ -68,14 +68,17 @@ headers = {
 
 # Primer peticion para obtener datos
 current_page = 1
-request_body = {
-  "fbyfechaini": "20240201",
-  "fbyfechafin": "20240225",
+common_params = {
+  "fbyfechaini": "20241201",
+  "fbyfechafin": "20241231",
   "frecuencia": "DIARIA",
-  "page": current_page,
   "gby": "zona,region,plaza,distribuidor,auto,fuenteinformacion"
 }
-response = get_data(request_body, headers)
+params = common_params | {
+    'page': current_page
+}
+
+response = get_data(params, headers)
 total_pages = int(response.headers['x-sicop-api-pages'])
 current_page = int(response.headers['x-sicop-api-current-page'])
 #Parseamos el resultado
@@ -86,14 +89,10 @@ print(f'Pagina: {current_page} de {total_pages}, Total Items: {len(data)}')
 # Recorrido para obtener resto de paginas
 while(current_page < total_pages):
     current_page = current_page + 1
-    request_body = {
-        "fbyfechaini": "20240201",
-        "fbyfechafin": "20240225",
-        "frecuencia": "DIARIA",
-        "page": current_page,
-        "gby": "zona,region,plaza,distribuidor,auto,fuenteinformacion"
+    params = common_params | {
+        'page': current_page
     }
-    response = get_data(request_body, headers)
+    response = get_data(params, headers)
     current_page = int(response.headers['x-sicop-api-current-page'])
     #Parseamos el resultado
     data = response.json()
