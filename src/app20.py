@@ -1,15 +1,20 @@
-import requests
 import json
 import mysql.connector
 import os
+import requests
+import time
+
+from dotenv import load_dotenv
+
+load_dotenv()
 
 USER_HOME = os.environ['userprofile']
 
-EMAIL_USER = '<YOUR_EMAIL_USER>'
-PWD_USER   = '<YOUR_PWD_USER>'
-CLIENT_ID  = '<YOUR_CLIENT_ID>'
-SECRET_KEY = '<YOUR_SECRET_KEY>'
-MARCA      = '<YOUR_MARK>'
+EMAIL_USER = os.getenv("EMAIL_USER")
+PWD_USER   = os.getenv("PWD_USER")
+CLIENT_ID  = os.getenv("CLIENT_ID")
+SECRET_KEY = os.getenv("SECRET_KEY")
+MARCA      = os.getenv("MARCA")
 
 URL_AUTH_ENDPOINT = "https://api.sicopweb.com/auth/prod/token"
 URL_ENDPOINT_SERVICE = f"https://api.sicopweb.com/bi/prod/indicadores20/{MARCA}/nacional"
@@ -94,6 +99,8 @@ def batch_insert_with_dicts(connection, insert_query, data):
     finally:
         cursor.close()
 
+start_time = time.time()
+
 user = UserCredentials(email=EMAIL_USER,pwd=PWD_USER)
 client = ClientCredentials(client_id=CLIENT_ID,secret_key=SECRET_KEY)
 
@@ -143,8 +150,8 @@ try:
     )"""
 
     common_params = {
-        "fbyfechaini": "20240901",
-        "fbyfechafin": "20240921",
+        "fbyfechaini": "20230101",
+        "fbyfechafin": "20250128",
         "frecuencia": "DIARIA",
         "gby": "zona,region,plaza,distribuidor,auto,fuenteinformacion,subcampana"
     }
@@ -182,3 +189,7 @@ except mysql.connector.Error as err:
     print(f"Error: {err}")
 finally:
     conn.close()
+
+total_time = time.time() - start_time
+
+print(f'Tiempo Total: {total_time} s')
