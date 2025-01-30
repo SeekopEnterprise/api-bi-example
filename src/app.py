@@ -1,5 +1,7 @@
 import requests
 import json
+import time
+
 
 EMAIL_USER = '<YOUR_EMAIL_USER>'
 PWD_USER   = '<YOUR_PWD_USER>'
@@ -54,6 +56,8 @@ def get_data(request_body, headers):
     response = requests.request("POST", URL_ENDPOINT_SERVICE, headers=headers, data=payload)
     return response
 
+start_time = time.time()
+
 user = UserCredentials(email=EMAIL_USER,pwd=PWD_USER)
 client = ClientCredentials(client_id=CLIENT_ID,secret_key=SECRET_KEY)
 
@@ -98,3 +102,7 @@ while(current_page < total_pages):
     data = response.json()
     #Solo imprimir el total de elementos descargados en la iteraccion
     print(f'Pagina: {current_page} de {total_pages}, Total Items: {len(data)}')
+
+total_time = time.time() - start_time
+
+print(f'Tiempo Total: {total_time} s')
