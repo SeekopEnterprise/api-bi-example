@@ -1,13 +1,17 @@
-import requests
 import json
+import os
+import requests
 import time
 
+from dotenv import load_dotenv
 
-EMAIL_USER = '<YOUR_EMAIL_USER>'
-PWD_USER   = '<YOUR_PWD_USER>'
-CLIENT_ID  = '<YOUR_CLIENT_ID>'
-SECRET_KEY = '<YOUR_SECRET_KEY>'
-MARCA      = '<YOUR_MARK>'
+load_dotenv()
+
+EMAIL_USER = os.getenv("EMAIL_USER")
+PWD_USER   = os.getenv("PWD_USER")
+CLIENT_ID  = os.getenv("CLIENT_ID")
+SECRET_KEY = os.getenv("SECRET_KEY")
+MARCA      = os.getenv("MARCA")
 
 URL_AUTH_ENDPOINT = "https://api.sicopweb.com/auth/prod/token"
 URL_ENDPOINT_SERVICE = f"https://api.sicopweb.com/bi/prod/indicadores/{MARCA}/nacional"
@@ -70,38 +74,58 @@ headers = {
   'Authorization': f'Bearer {token}'
 }
 
-# Primer peticion para obtener datos
-current_page = 1
 common_params = {
-  "fbyfechaini": "20241201",
-  "fbyfechafin": "20241231",
-  "frecuencia": "DIARIA",
-  "gby": "zona,region,plaza,distribuidor,auto,fuenteinformacion"
-}
-params = common_params | {
-    'page': current_page
+    "fbyfechaini": "20250101",
+    "fbyfechafin": "20250131",
+    "frecuencia": "DIARIA",
+    "gby": "zona,region,plaza,distribuidor"
 }
 
-response = get_data(params, headers)
+# Primer peticion para obtener datos
+current_page = 1
+request_body = common_params | {
+    "page": current_page
+}
+
+fulldata = []
+print('Solicitando datos...')
+response = get_data(request_body, headers)
 total_pages = int(response.headers['x-sicop-api-pages'])
 current_page = int(response.headers['x-sicop-api-current-page'])
+
 #Parseamos el resultado
 data = response.json()
+fulldata.extend(data)
 #Solo imprimir el total de elementos descargados en la iteraccion
 print(f'Pagina: {current_page} de {total_pages}, Total Items: {len(data)}')
 
 # Recorrido para obtener resto de paginas
 while(current_page < total_pages):
     current_page = current_page + 1
-    params = common_params | {
-        'page': current_page
+    request_body = common_params | {
+        "page": current_page
     }
-    response = get_data(params, headers)
+    response = get_data(request_body, headers)
     current_page = int(response.headers['x-sicop-api-current-page'])
     #Parseamos el resultado
     data = response.json()
     #Solo imprimir el total de elementos descargados en la iteraccion
     print(f'Pagina: {current_page} de {total_pages}, Total Items: {len(data)}')
+    fulldata.extend(data)
+
+print(f'Total Items: {len(fulldata)}')
+
+# Calculamos total de prospectos acumulados en fulldata
+total_prospectos = 0
+total_prospectos_piso = 0
+total_prospectos_digitales = 0
+for row in fulldata:
+    total_prospectos += int(row['prospectos'])
+    total_prospectos_piso += int(row['prospectospiso'])
+    total_prospectos_digitales += int(row['leads'])
+print(f'Prospectos: {total_prospectos}')
+print(f'ProspectosPiso: {total_prospectos_piso}')
+print(f'ProspectosDigitales: {total_prospectos_digitales}')
 
 total_time = time.time() - start_time
 
