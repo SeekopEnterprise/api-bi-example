@@ -13,7 +13,7 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 MARCA      = os.getenv("MARCA")
 
 URL_AUTH_ENDPOINT = "https://api.sicopweb.com/auth/prod/token"
-URL_ENDPOINT_SERVICE = f"https://api.sicopweb.com/funnel/v8/indicadores/nacional/detalle"
+URL_ENDPOINT_SERVICE = f"https://api.sicopweb.com/funnel/prod/indicadores/nacional/detalle"
 
 class UserCredentials:
 
@@ -56,6 +56,7 @@ def get_access_token(userCredentials: UserCredentials, clientCredentials: Client
 
 def get_data(params, headers):
     response = requests.request('GET', URL_ENDPOINT_SERVICE, headers=headers, params=params)
+    response.raise_for_status()
     return response
 
 start_time = time.time()
@@ -75,20 +76,20 @@ headers = {
 
 params_cac = {
     'origen':MARCA,
-    'fbyfechaini':'20241201',
-    'fbyfechafin':'20241231',
+    'fbyfechaini':'20250401',
+    'fbyfechafin':'20250422',
     'fbyatiende':'CAC'
 }
 params_dealer = {
     'origen':MARCA,
-    'fbyfechaini':'20241201',
-    'fbyfechafin':'20241231',
+    'fbyfechaini':'20250401',
+    'fbyfechafin':'20250422',
     'fbyatiende':'DEALER'
 }
 params_total = {
     'origen':MARCA,
-    'fbyfechaini':'20241201',
-    'fbyfechafin':'20241231',
+    'fbyfechaini':'20250401',
+    'fbyfechafin':'20250422',
 }
 # Primer peticion para obtener datos
 current_page = 1
@@ -99,9 +100,12 @@ params = common_params | {
 
 fulldata = []
 print('Solicitando datos...')
-response = get_data(params, headers)
-total_pages = int(response.headers['x-sicop-api-pages'])
-current_page = int(response.headers['x-sicop-api-current-page'])
+try:
+    response = get_data(params, headers)
+    total_pages = int(response.headers['x-sicop-api-pages'])
+    current_page = int(response.headers['x-sicop-api-current-page'])
+except requests.exceptions.HTTPError as e:
+    print(e)
 
 #Parseamos el resultado
 data = response.json()
@@ -111,17 +115,20 @@ print(f'Pagina: {current_page} de {total_pages}, Total Items: {len(data)}')
 
 # Recorrido para obtener resto de paginas
 while(current_page < total_pages):
-    current_page = current_page + 1
-    params = common_params | {
-            'page': current_page
-    }
-    response = get_data(params, headers)
-    current_page = int(response.headers['x-sicop-api-current-page'])
-    #Parseamos el resultado
-    data = response.json()
-    #Solo imprimir el total de elementos descargados en la iteraccion
-    print(f'Pagina: {current_page} de {total_pages}, Total Items: {len(data)}')
-    fulldata.extend(data)
+    try:
+        current_page = current_page + 1
+        params = common_params | {
+                'page': current_page
+        }
+        response = get_data(params, headers)
+        current_page = int(response.headers['x-sicop-api-current-page'])
+        #Parseamos el resultado
+        data = response.json()
+        #Solo imprimir el total de elementos descargados en la iteraccion
+        print(f'Pagina: {current_page} de {total_pages}, Total Items: {len(data)}')
+        fulldata.extend(data)
+    except requests.exceptions.HTTPError as e:
+        print(e)
 
 print(f'Total Items: {len(fulldata)}')
 
