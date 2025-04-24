@@ -1,11 +1,17 @@
 import requests
 import time
 
-EMAIL_USER = '<YOUR_EMAIL_USER>'
-PWD_USER   = '<YOUR_PWD_USER>'
-CLIENT_ID  = '<YOUR_CLIENT_ID>'
-SECRET_KEY = '<YOUR_SECRET_KEY>'
-MARCA      = '<YOUR_MARK>'
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+EMAIL_USER = os.getenv("EMAIL_USER")
+PWD_USER   = os.getenv("PWD_USER")
+CLIENT_ID  = os.getenv("CLIENT_ID")
+SECRET_KEY = os.getenv("SECRET_KEY")
+MARCA      = os.getenv("MARCA")
+
 
 URL_AUTH_ENDPOINT = "https://api.sicopweb.com/auth/prod/token"
 URL_ENDPOINT_SERVICE = f"https://api.sicopweb.com/funnel/v8/indicadores/nacional/detalle/general"
@@ -72,8 +78,8 @@ headers = {
 current_page = 1
 common_params = {
     'origen':MARCA,
-    'fbyfechaini':'20241201',
-    'fbyfechafin':'20241231'
+    'fbyfechaini':'20250301', 
+    'fbyfechafin':'20250320'
 }
 params = common_params | {
     'page': current_page
@@ -113,6 +119,11 @@ total_digital_leads = 0
 total_walkin_leads = 0
 total_street_leads = 0
 total_database_leads = 0
+total_quotes = 0
+total_quotes_walkin = 0
+total_quotes_street = 0
+total_quotes_db = 0
+total_quotes_digital = 0
 
 for row in fulldata:
     total_leads += int(row['prospectos'])
@@ -120,12 +131,23 @@ for row in fulldata:
     total_street_leads += int(row['prospectoscalle'])
     total_database_leads += int(row['prospectoscartera'])
     total_digital_leads += int(row['leads'])
+    total_quotes += int(row['cotizaciones'])
+    total_quotes_walkin += int(row['cotizacionespiso'])
+    total_quotes_street += int(row['cotizacionescalle'])
+    total_quotes_db += int(row['cotizacionescartera'])
+    total_quotes_digital += int(row['cotizacionesleads'])
 
 print(f'Total Leads: {total_leads}')
 print(f'Total Walk-in Leads: {total_walkin_leads}')
 print(f'Total Street Leads: {total_street_leads}')
 print(f'Total Database Leads: {total_database_leads}')
 print(f'Total Digital Leads: {total_digital_leads}')
+
+print(f'Total Quotes: {total_quotes}')
+print(f'Total Walk-in Quotes: {total_quotes_walkin}')
+print(f'Total Street Quotes: {total_quotes_street}')
+print(f'Total Database Quotes: {total_quotes_db}')
+print(f'Total DigitalQuotes: {total_quotes_digital}')
 
 
 total_time = time.time() - start_time
