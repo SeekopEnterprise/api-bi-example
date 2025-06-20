@@ -1,17 +1,22 @@
 import requests
 import time
 
-import os
+from os import getenv
 from dotenv import load_dotenv
 
 load_dotenv()
 
-EMAIL_USER = os.getenv("EMAIL_USER")
-PWD_USER   = os.getenv("PWD_USER")
-CLIENT_ID  = os.getenv("CLIENT_ID")
-SECRET_KEY = os.getenv("SECRET_KEY")
-MARCA      = os.getenv("MARCA")
+def get_env_var(key: str, default: str = "") -> str:
+    value = getenv(key, default)
+    if value == "":
+        print(f"Warning: Environment variable '{key}' is not defined. Setting default value")
+    return value
 
+EMAIL_USER = get_env_var("EMAIL_USER")
+PWD_USER   = get_env_var("PWD_USER")
+CLIENT_ID  = get_env_var("CLIENT_ID")
+SECRET_KEY = get_env_var("SECRET_KEY")
+MARCA      = get_env_var("MARCA")
 
 URL_AUTH_ENDPOINT = "https://api.sicopweb.com/auth/prod/token"
 URL_ENDPOINT_SERVICE = f"https://api.sicopweb.com/funnel/v8/indicadores/nacional/detalle/general"
@@ -57,6 +62,7 @@ def get_access_token(userCredentials: UserCredentials, clientCredentials: Client
 
 def get_data(params, headers):
     response = requests.request('GET', URL_ENDPOINT_SERVICE, headers=headers, params=params)
+    response.raise_for_status()
     return response
 
 start_time = time.time()
@@ -78,18 +84,21 @@ headers = {
 current_page = 1
 common_params = {
     'origen':MARCA,
-    'fbyfechaini':'20250301', 
-    'fbyfechafin':'20250320'
+    'fbyfechaini':'20250401', 
+    'fbyfechafin':'20250428'
 }
 params = common_params | {
     'page': current_page
 }
 
 fulldata = []
-print('Request data...')
-response = get_data(params, headers)
-total_pages = int(response.headers['x-sicop-api-pages'])
-current_page = int(response.headers['x-sicop-api-current-page'])
+try:
+    print('Request data...')
+    response = get_data(params, headers)
+    total_pages = int(response.headers['x-sicop-api-pages'])
+    current_page = int(response.headers['x-sicop-api-current-page'])
+except requests.exceptions.HTTPError as e:
+    print(e)
 
 #Parseamos el resultado
 data = response.json()
@@ -99,17 +108,20 @@ print(f'Page: {current_page} of {total_pages}, Total records: {len(data)}')
 
 # Recorrido para obtener resto de paginas
 while(current_page < total_pages):
-    current_page = current_page + 1
-    params = common_params | {
-            'page': current_page
-    }
-    response = get_data(params, headers)
-    current_page = int(response.headers['x-sicop-api-current-page'])
-    #Parseamos el resultado
-    data = response.json()
-    #Solo imprimir el total de elementos descargados en la iteraccion
-    print(f'Page: {current_page} de {total_pages}, Total records: {len(data)}')
-    fulldata.extend(data)
+    try:
+        current_page = current_page + 1
+        params = common_params | {
+                'page': current_page
+        }
+        response = get_data(params, headers)
+        current_page = int(response.headers['x-sicop-api-current-page'])
+        #Parseamos el resultado
+        data = response.json()
+        #Solo imprimir el total de elementos descargados en la iteraccion
+        print(f'Page: {current_page} de {total_pages}, Total records: {len(data)}')
+        fulldata.extend(data)
+    except requests.exceptions.HTTPError as e:
+        print(e)
 
 print(f'Total records: {len(fulldata)}')
 
