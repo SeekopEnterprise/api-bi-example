@@ -8,7 +8,7 @@ load_dotenv()
 
 def get_env_var(key: str, default: str = "") -> str:
     value = getenv(key, default)
-    if value == "":
+    if not value:
         print(f"Warning: Environment variable '{key}' is not defined. Setting default value")
     return value
 
@@ -95,8 +95,8 @@ fulldata = []
 try:
     print('Request data...')
     response = get_data(params, headers)
-    total_pages = int(response.headers['x-sicop-api-pages'])
-    current_page = int(response.headers['x-sicop-api-current-page'])
+    total_pages = int(response.headers.get('x-sicop-api-pages', 1))
+    current_page = int(response.headers.get('x-sicop-api-current-page', 1))
 except requests.exceptions.HTTPError as e:
     print(e)
 
@@ -114,7 +114,7 @@ while(current_page < total_pages):
                 'page': current_page
         }
         response = get_data(params, headers)
-        current_page = int(response.headers['x-sicop-api-current-page'])
+        current_page = int(response.headers.get('x-sicop-api-current-page', current_page))
         #Parseamos el resultado
         data = response.json()
         #Solo imprimir el total de elementos descargados en la iteraccion
