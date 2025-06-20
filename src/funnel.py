@@ -1,16 +1,22 @@
 import requests
 import time
-import os
 
+from os import getenv
 from dotenv import load_dotenv
 
 load_dotenv()
 
-EMAIL_USER = os.getenv("EMAIL_USER")
-PWD_USER   = os.getenv("PWD_USER")
-CLIENT_ID  = os.getenv("CLIENT_ID")
-SECRET_KEY = os.getenv("SECRET_KEY")
-MARCA      = os.getenv("MARCA")
+def get_env_var(key: str, default: str = "") -> str:
+    value = getenv(key, default)
+    if value == "":
+        print(f"Advertencia: la variable de entorno '{key}' no está definida. Usando valor por defecto.")
+    return value
+
+EMAIL_USER = get_env_var("EMAIL_USER")
+PWD_USER   = get_env_var("PWD_USER")
+CLIENT_ID  = get_env_var("CLIENT_ID")
+SECRET_KEY = get_env_var("SECRET_KEY")
+MARCA      = get_env_var("MARCA")
 
 URL_AUTH_ENDPOINT = "https://api.sicopweb.com/auth/prod/token"
 URL_ENDPOINT_SERVICE = f"https://api.sicopweb.com/funnel/prod/indicadores/nacional/detalle"
