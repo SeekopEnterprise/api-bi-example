@@ -8,7 +8,7 @@ load_dotenv()
 
 def get_env_var(key: str, default: str = "") -> str:
     value = getenv(key, default)
-    if value == "":
+    if not value:
         print(f"Advertencia: la variable de entorno '{key}' no está definida. Usando valor por defecto.")
     return value
 
