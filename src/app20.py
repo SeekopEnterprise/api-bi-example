@@ -104,6 +104,7 @@ start_time = time.time()
 
 user = UserCredentials(email=EMAIL_USER, pwd=PWD_USER)
 client = ClientCredentials(client_id=CLIENT_ID, secret_key=SECRET_KEY)
+#Obtenemos el token de acceso
 token = get_access_token(user, client)
 
 if not token:
