@@ -85,7 +85,7 @@ try:
     current_page = 1
     common_params = {
         "fbyfechaini": "20250601",
-        "fbyfechafin": "20250619",
+        "fbyfechafin": "20250622",
         "frecuencia": "DIARIA",
         "gby": "zona,region,plaza,distribuidor,auto,fuenteinformacion,subcampana"
     }
