@@ -18,7 +18,7 @@ CLIENT_ID  = get_env_var("CLIENT_ID")
 SECRET_KEY = get_env_var("SECRET_KEY")
 MARCA      = get_env_var("MARCA")
 
-URL_AUTH_ENDPOINT = "https://api.sicopweb.com/auth/prod/token"
+URL_AUTH_ENDPOINT = "https://api.sicopweb.com/auth/v3/token"
 URL_ENDPOINT_SERVICE = f"https://api.sicopweb.com/funnel/prod/indicadores/nacional/detalle"
 
 class UserCredentials:
