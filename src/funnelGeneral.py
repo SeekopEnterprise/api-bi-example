@@ -1,8 +1,11 @@
 import requests
 import time
-
+import logging
 from os import getenv
 from dotenv import load_dotenv
+
+# Configurar logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 load_dotenv()
 
@@ -18,7 +21,7 @@ CLIENT_ID  = get_env_var("CLIENT_ID")
 SECRET_KEY = get_env_var("SECRET_KEY")
 MARCA      = get_env_var("MARCA")
 
-URL_AUTH_ENDPOINT = "https://api.sicopweb.com/auth/prod/token"
+URL_AUTH_ENDPOINT = "https://api.sicopweb.com/auth/v3/token"
 URL_ENDPOINT_SERVICE = f"https://api.sicopweb.com/funnel/v8/indicadores/nacional/detalle/general"
 
 class UserCredentials:
@@ -41,24 +44,20 @@ def get_access_token(userCredentials: UserCredentials, clientCredentials: Client
         'client_id': clientCredentials.client_id,
         'secret_key': clientCredentials.secret_key
     }
-
     # Encabezados de la solicitud
-    headers = {
-        'Content-type': 'application/x-www-form-urlencoded'
-    }
+    headers = {"Content-type": "application/x-www-form-urlencoded"}
 
-    # Realizar la petición POST
-    response = requests.post( URL_AUTH_ENDPOINT, data=data, headers=headers)
-    response.raise_for_status()
-    # Verificar el código de estado de la respuesta
-
-    # Obtener los datos de respuesta como un diccionario de Python
-    respuesta_json = response.json()
-        
-    # Acceder a los datos devueltos
-    token = respuesta_json['token']
-
-    return token
+    try:
+        response = requests.post(URL_AUTH_ENDPOINT, data=data, headers=headers)
+        response.raise_for_status()
+        respuesta_json = response.json()
+        token = respuesta_json.get("token")
+        if not token:
+            raise ValueError("Token no presente en la respuesta")
+        return token
+    except Exception as e:
+        logging.error(f"Error al obtener el token de acceso: {e}")
+        return None
 
 def get_data(params, headers):
     response = requests.request('GET', URL_ENDPOINT_SERVICE, headers=headers, params=params)
@@ -69,10 +68,12 @@ start_time = time.time()
 
 user = UserCredentials(email=EMAIL_USER,pwd=PWD_USER)
 client = ClientCredentials(client_id=CLIENT_ID,secret_key=SECRET_KEY)
-
-print('Get Access Token...')
+logging.info('Get Access Token...')
 # Obtenemos el token de acceso
 token = get_access_token(user, client)
+
+if not token:
+    exit(1)
 
 # Encabezados necesarios con token de acceso
 headers = {
@@ -80,88 +81,157 @@ headers = {
   'Authorization': f'Bearer {token}'
 }
 
-# Primer peticion para obtener datos
-current_page = 1
-common_params = {
-    'origen':MARCA,
-    'fbyfechaini':'20250401', 
-    'fbyfechafin':'20250428'
-}
-params = common_params | {
-    'page': current_page
-}
-
-fulldata = []
 try:
-    print('Request data...')
+    # Primer peticion para obtener datos
+    current_page = 1
+    common_params = {
+        'origen':MARCA,
+        'fbyfechaini':'20250701', 
+        'fbyfechafin':'20250731'
+    }
+    params = {**common_params, "page": current_page}
+
+    fulldata = []
+    total_pages = 0
+    current_page = 0
+    response = None
+    total_records = 0
+
+    logging.info('Request data...')
     response = get_data(params, headers)
     total_pages = int(response.headers.get('x-sicop-api-pages', 1))
     current_page = int(response.headers.get('x-sicop-api-current-page', 1))
-except requests.exceptions.HTTPError as e:
-    print(e)
 
-#Parseamos el resultado
-data = response.json()
-fulldata.extend(data)
-#Solo imprimir el total de elementos descargados en la iteraccion
-print(f'Page: {current_page} of {total_pages}, Total records: {len(data)}')
+    #Parseamos el resultado
+    data = response.json()
+    if not isinstance(data, list):
+        raise ValueError("Unexpected response: response not is dictionary")
+    
+    total_records = len(data)
+    fulldata.extend(data)
 
-# Recorrido para obtener resto de paginas
-while(current_page < total_pages):
-    try:
+    #Solo imprimir el total de elementos descargados en la iteraccion
+    logging.info(f'Page: {current_page} of {total_pages}, Total records: {total_records}')
+
+    # Recorrido para obtener resto de paginas
+    while(current_page < total_pages):
         current_page = current_page + 1
-        params = common_params | {
-                'page': current_page
-        }
-        response = get_data(params, headers)
-        current_page = int(response.headers.get('x-sicop-api-current-page', current_page))
-        #Parseamos el resultado
-        data = response.json()
-        #Solo imprimir el total de elementos descargados en la iteraccion
-        print(f'Page: {current_page} de {total_pages}, Total records: {len(data)}')
-        fulldata.extend(data)
-    except requests.exceptions.HTTPError as e:
-        print(e)
+        params = {**common_params, "page": current_page}
+        try:
+            response = get_data(params, headers)
+            current_page = int(response.headers.get('x-sicop-api-current-page', current_page))
+            #Parseamos el resultado
+            data = response.json()
+            if not isinstance(data, list):
+                raise ValueError("Unexpected response in pages iterations")
+            total_records = len(data)
+            #Solo imprimir el total de elementos descargados en la iteraccion
+            logging.info(f'Page: {current_page} de {total_pages}, Total records: {total_records}')
+            fulldata.extend(data)
+        except Exception as e:
+            logging.error(f"Error in page {current_page}: {e}")
 
-print(f'Total records: {len(fulldata)}')
+    logging.info(f'Total records: {len(fulldata)}')
 
-# Calculamos total de prospectos acumulados en fulldata
-total_leads = 0
-total_digital_leads = 0
-total_walkin_leads = 0
-total_street_leads = 0
-total_database_leads = 0
-total_quotes = 0
-total_quotes_walkin = 0
-total_quotes_street = 0
-total_quotes_db = 0
-total_quotes_digital = 0
+    # Calculamos total de prospectos acumulados en fulldata
+    total_leads = 0
+    total_valid = 0
+    total_shows = 0
+    total_test_drive = 0
+    total_quotes = 0
+    total_sales = 0
+    total_delivery = 0
 
-for row in fulldata:
-    total_leads += int(row['prospectos'])
-    total_walkin_leads += int(row['prospectospiso'])
-    total_street_leads += int(row['prospectoscalle'])
-    total_database_leads += int(row['prospectoscartera'])
-    total_digital_leads += int(row['leads'])
-    total_quotes += int(row['cotizaciones'])
-    total_quotes_walkin += int(row['cotizacionespiso'])
-    total_quotes_street += int(row['cotizacionescalle'])
-    total_quotes_db += int(row['cotizacionescartera'])
-    total_quotes_digital += int(row['cotizacionesleads'])
+    total_digital_leads = 0
+    total_walkin_leads = 0
+    total_street_leads = 0
+    total_database_leads = 0
 
-print(f'Total Leads: {total_leads}')
-print(f'Total Walk-in Leads: {total_walkin_leads}')
-print(f'Total Street Leads: {total_street_leads}')
-print(f'Total Database Leads: {total_database_leads}')
-print(f'Total Digital Leads: {total_digital_leads}')
+    total_digital_valid = 0
+    total_walkin_valid = 0
+    total_street_valid = 0
+    total_database_valid = 0
 
-print(f'Total Quotes: {total_quotes}')
-print(f'Total Walk-in Quotes: {total_quotes_walkin}')
-print(f'Total Street Quotes: {total_quotes_street}')
-print(f'Total Database Quotes: {total_quotes_db}')
-print(f'Total DigitalQuotes: {total_quotes_digital}')
+    total_quotes = 0
+    total_quotes_walkin = 0
+    total_quotes_street = 0
+    total_quotes_db = 0
+    total_quotes_digital = 0
 
+    total_quotes_unique = 0
+    total_quotes_walkin_unique = 0
+    total_quotes_street_unique = 0
+    total_quotes_db_unique = 0
+    total_quotes_digital_unique = 0
 
-total_time = time.time() - start_time
+    for row in fulldata:
+        total_leads += int(row['prospectos'])
+        total_valid += int(row['asignados'])
+        total_shows += int(row['shows'])
+        total_test_drive += int(row['prospectoscondemo'])
+        total_quotes += int(row['prospectosconcotizacion'])
+        total_sales += int(row['ventasfacturadas'])
+        total_delivery += int(row['ventasentregadas'])
 
-print(f'Total time: {total_time} s')
+        total_walkin_leads += int(row['prospectospiso'])
+        total_street_leads += int(row['prospectoscalle'])
+        total_database_leads += int(row['prospectoscartera'])
+        total_digital_leads += int(row['leads'])
+
+        total_walkin_valid += int(row['asignadospiso'])
+        total_street_valid += int(row['asignadoscalle'])
+        total_database_valid += int(row['asignadoscartera'])
+        total_digital_valid += int(row['asignadosleads'])
+
+        total_quotes += int(row['cotizaciones'])
+        total_quotes_walkin += int(row['cotizacionespiso'])
+        total_quotes_street += int(row['cotizacionescalle'])
+        total_quotes_db += int(row['cotizacionescartera'])
+        total_quotes_digital += int(row['cotizacionesleads'])
+
+        total_quotes_unique += int(row['prospectosconcotizacion'])
+        total_quotes_walkin_unique += int(row['prospectosconcotizacionpiso'])
+        total_quotes_street_unique += int(row['prospectosconcotizacioncalle'])
+        total_quotes_db_unique += int(row['prospectosconcotizacioncartera'])
+        total_quotes_digital_unique += int(row['prospectosconcotizacionleads'])
+
+    logging.info(f'===== DOWNLOAD INFO =====')
+    logging.info(f'Total Leads: {total_leads}')
+    logging.info(f'Total Valid: {total_valid}')
+    logging.info(f'Total Shows: {total_shows}')
+    logging.info(f'Total Test drive: {total_test_drive}')
+    logging.info(f'Total Quotes: {total_quotes}')
+    logging.info(f'Total Sales: {total_sales}')
+    logging.info(f'Total Delivery: {total_delivery}')
+
+#    logging.info(f'Total Leads: {total_leads}')
+#    logging.info(f'Total Walk-in Leads: {total_walkin_leads}')
+#    logging.info(f'Total Street Leads: {total_street_leads}')
+#    logging.info(f'Total Database Leads: {total_database_leads}')
+#    logging.info(f'Total Digital Leads: {total_digital_leads}')
+
+    logging.info(f'===== Asignados =====')
+    logging.info(f'Total Valid: {total_valid}')
+    logging.info(f'Total Walk-in Quotes: {total_walkin_valid}')
+    logging.info(f'Total Street Quotes: {total_street_valid}')
+    logging.info(f'Total Database Quotes: {total_database_leads}')
+    logging.info(f'Total Digital Valid: {total_digital_valid}')
+
+    logging.info(f'===== Cotizaciones =====')
+    logging.info(f'Total Quotes: {total_quotes}')
+    logging.info(f'Total Walk-in Quotes: {total_quotes_walkin}')
+    logging.info(f'Total Street Quotes: {total_quotes_street}')
+    logging.info(f'Total Database Quotes: {total_quotes_db}')
+    logging.info(f'Total Digital Quotes: {total_quotes_digital}')
+
+    logging.info(f'===== Prospectos con Cotizacion =====')
+    logging.info(f'Total Quotes Unique: {total_quotes_unique}')
+    logging.info(f'Total Walk-in Quotes  Unique: {total_quotes_walkin_unique}')
+    logging.info(f'Total Street Quotes Unique: {total_quotes_street_unique}')
+    logging.info(f'Total Database Quotes: Unique {total_quotes_db_unique}')
+    logging.info(f'Total Digital Quotes Unique: {total_quotes_digital_unique}')
+
+except Exception as e:
+    logging.error(f"General Error: {e}")
+
+logging.info(f'Total time: {time.time() - start_time} s')
