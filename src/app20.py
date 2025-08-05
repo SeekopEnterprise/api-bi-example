@@ -27,8 +27,8 @@ CLIENT_ID  = get_env_var("CLIENT_ID")
 SECRET_KEY = get_env_var("SECRET_KEY")
 MARCA      = get_env_var("MARCA")
 
-URL_AUTH_ENDPOINT = "https://api.sicopweb.com/auth/prod/token"
-URL_ENDPOINT_SERVICE = f"https://api.sicopweb.com/bi/prod/indicadores20/{MARCA}/nacional"
+URL_AUTH_ENDPOINT = "https://api.sicopweb.com/auth/v3/token"
+URL_ENDPOINT_SERVICE = f"https://api.sicopweb.com/bi/v8/indicadores20/{MARCA}/nacional"
 
 def loadConf(conf_file: str):
     separator = "="
@@ -148,8 +148,8 @@ try:
     )"""
 
     common_params = {
-        "fbyfechaini": "20250601",
-        "fbyfechafin": "20250622",
+        "fbyfechaini": "20250701",
+        "fbyfechafin": "20250731",
         "frecuencia": "DIARIA",
         "gby": "zona,region,plaza,distribuidor,auto,fuenteinformacion,subcampana"
     }
