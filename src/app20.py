@@ -28,7 +28,7 @@ SECRET_KEY = get_env_var("SECRET_KEY")
 MARCA      = get_env_var("MARCA")
 
 URL_AUTH_ENDPOINT = "https://api.sicopweb.com/auth/v3/token"
-URL_ENDPOINT_SERVICE = f"https://api.sicopweb.com/bi/v8/indicadores20/{MARCA}/nacional"
+URL_ENDPOINT_SERVICE = f"https://api.sicopweb.com/bi/prod/indicadores20/{MARCA}/nacional"
 
 def loadConf(conf_file: str):
     separator = "="
