@@ -84,8 +84,8 @@ try:
     # Primer peticion para obtener datos
     current_page = 1
     common_params = {
-        "fbyfechaini": "20250801",
-        "fbyfechafin": "20250821",
+        "fbyfechaini": "20251001",
+        "fbyfechafin": "20251014",
         "frecuencia": "DIARIA",
         "gby": "zona,region,plaza,distribuidor,auto,fuenteinformacion,subcampana"
     }
