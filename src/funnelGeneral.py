@@ -86,8 +86,8 @@ try:
     current_page = 1
     common_params = {
         'origen':MARCA,
-        'fbyfechaini':'20250701', 
-        'fbyfechafin':'20250731'
+        'fbyfechaini':'20251101', 
+        'fbyfechafin':'20251110'
     }
     params = {**common_params, "page": current_page}
 
@@ -164,6 +164,15 @@ try:
     total_quotes_db_unique = 0
     total_quotes_digital_unique = 0
 
+    total_inactive = 0.0
+    total_digital_inactive = 0.0
+    total_walkin_inactive = 0.0
+    total_street_inactive = 0.0
+    total_database_inactive = 0.0
+
+    intentados = 0.0
+    intentados_minutos = 0.0
+
     for row in fulldata:
         total_leads += int(row['prospectos'])
         total_valid += int(row['asignados'])
@@ -194,6 +203,16 @@ try:
         total_quotes_street_unique += int(row['prospectosconcotizacioncalle'])
         total_quotes_db_unique += int(row['prospectosconcotizacioncartera'])
         total_quotes_digital_unique += int(row['prospectosconcotizacionleads'])
+
+        total_inactive += float(row['prospectosinactivos'])
+        total_walkin_inactive += float(row['prospectosinactivospiso'])
+        total_street_inactive += float(row['prospectosinactivoscalle'])
+        total_database_inactive += float(row['prospectosinactivoscartera'])
+        total_digital_inactive += float(row['prospectosinactivosleads'])
+
+        intentados += float(row['intentados'])
+        if(row['intentadosminutos'] ):
+            intentados_minutos += float(row['intentadosminutos'])
 
     logging.info(f'===== DOWNLOAD INFO =====')
     logging.info(f'Total Leads: {total_leads}')
@@ -230,6 +249,18 @@ try:
     logging.info(f'Total Street Quotes Unique: {total_quotes_street_unique}')
     logging.info(f'Total Database Quotes: Unique {total_quotes_db_unique}')
     logging.info(f'Total Digital Quotes Unique: {total_quotes_digital_unique}')
+
+    logging.info(f'===== Inactivos =====')
+    logging.info(f'Total Inactive: {total_inactive}')
+    logging.info(f'Total Walk-in Inactive: {total_walkin_inactive}')
+    logging.info(f'Total Street Inactive: {total_street_inactive}')
+    logging.info(f'Total Database Inactive: {total_database_inactive}')
+    logging.info(f'Total Digital Inactive: {total_digital_inactive}')
+
+    logging.info(f'===== Intentados =====')
+    logging.info(f'Intentados: {intentados}')
+    logging.info(f'Intentados minutos: {intentados_minutos}')
+    logging.info(f'Tiempo: {intentados_minutos/intentados}')
 
 except Exception as e:
     logging.error(f"General Error: {e}")
