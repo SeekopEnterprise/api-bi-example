@@ -131,7 +131,9 @@ try:
     INSERT INTO sicopdb.analisisdiariobdc(
         anio, mes, dia, fecha,
         codigomarca, zona, region, plaza, distribuidor,
-        fuenteinformacion, subcampana, recibidos, intentados,
+        fuenteinformacion, subcampana,
+        idejecutivo, ejecutivo,
+        recibidos, intentados,
         intentadosminutos, tiempopromediointentados,
         contactados, asignados, citas,
         citasregistradas, `show`, confirmaciondecitas,
@@ -140,7 +142,9 @@ try:
     VALUES (
         %(anio)s, %(mes)s, %(dia)s, %(fecha)s,
         %(codigomarca)s, %(zona)s, %(region)s, %(plaza)s, %(distribuidor)s,
-        %(fuenteinformacion)s, %(subcampana)s, %(recibidos)s, %(intentados)s,
+        %(fuenteinformacion)s, %(subcampana)s,
+        %(idejecutivo)s, %(ejecutivo)s,
+        %(recibidos)s, %(intentados)s,
         %(intentadosminutos)s, %(tiempopromediointentados)s,
         %(contactados)s, %(asignados)s, %(citas)s,
         %(citasregistradas)s, %(show)s, %(confirmaciondecitas)s,
@@ -148,10 +152,10 @@ try:
     )"""
 
     common_params = {
-        "fbyfechaini": "20250701",
-        "fbyfechafin": "20250731",
+        "fbyfechaini": "20251001",
+        "fbyfechafin": "20251014",
         "frecuencia": "DIARIA",
-        "gby": "zona,region,plaza,distribuidor,auto,fuenteinformacion,subcampana"
+        "gby": "zona,region,plaza,distribuidor,auto,fuenteinformacion,subcampana,ejecutivo"
     }
 
     current_page = 1
