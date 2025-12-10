@@ -87,7 +87,7 @@ try:
     common_params = {
         'origen':MARCA,
         'fbyfechaini':'20251101', 
-        'fbyfechafin':'20251110'
+        'fbyfechafin':'20251130'
     }
     params = {**common_params, "page": current_page}
 
@@ -173,6 +173,18 @@ try:
     intentados = 0.0
     intentados_minutos = 0.0
 
+    total_apartados = 0
+    total_digital_apartados = 0
+    total_walkin_apartados = 0
+    total_street_apartados = 0
+    total_database_apartados = 0
+
+    total_citas = 0
+    total_digital_citas = 0
+    total_walkin_citas = 0
+    total_street_citas = 0
+    total_database_citas = 0
+
     for row in fulldata:
         total_leads += int(row['prospectos'])
         total_valid += int(row['asignados'])
@@ -213,6 +225,18 @@ try:
         intentados += float(row['intentados'])
         if(row['intentadosminutos'] ):
             intentados_minutos += float(row['intentadosminutos'])
+
+        total_apartados += int(row['apartados'])
+        total_walkin_apartados += int(row['apartadospiso'])
+        total_street_apartados += int(row['apartadoscalle'])
+        total_database_apartados += int(row['apartadoscartera'])
+        total_digital_apartados += int(row['apartadosleads'])
+
+        total_citas += int(row['citas'])
+        total_walkin_citas += int(row['citaspiso'])
+        total_street_citas += int(row['citascalle'])
+        total_database_citas += int(row['citascartera'])
+        total_digital_citas += int(row['citasleads'])
 
     logging.info(f'===== DOWNLOAD INFO =====')
     logging.info(f'Total Leads: {total_leads}')
@@ -261,6 +285,20 @@ try:
     logging.info(f'Intentados: {intentados}')
     logging.info(f'Intentados minutos: {intentados_minutos}')
     logging.info(f'Tiempo: {intentados_minutos/intentados}')
+
+    logging.info(f'===== Apartados =====')
+    logging.info(f'Total Apartados: {total_apartados}')
+    logging.info(f'Total Walk-in Apartados: {total_walkin_apartados}')
+    logging.info(f'Total Street Apartados: {total_street_apartados}')
+    logging.info(f'Total Database Apartados: {total_database_apartados}')
+    logging.info(f'Total Digital Apartados: {total_digital_apartados}')
+
+    logging.info(f'===== Citas =====')
+    logging.info(f'Total Citas: {total_citas}')
+    logging.info(f'Total Walk-in Citas: {total_walkin_citas}')
+    logging.info(f'Total Street Citas: {total_street_citas}')
+    logging.info(f'Total Database Citas: {total_database_citas}')
+    logging.info(f'Total Digital Citas: {total_digital_citas}')
 
 except Exception as e:
     logging.error(f"General Error: {e}")
