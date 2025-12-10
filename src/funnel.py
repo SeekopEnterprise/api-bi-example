@@ -82,20 +82,20 @@ headers = {
 
 params_cac = {
     'origen':MARCA,
-    'fbyfechaini':'20251001',
-    'fbyfechafin':'20251021',
+    'fbyfechaini':'20251101',
+    'fbyfechafin':'20251130',
     'fbyatiende':'CAC'
 }
 params_dealer = {
     'origen':MARCA,
-    'fbyfechaini':'20251001',
-    'fbyfechafin':'20251021',
+    'fbyfechaini':'20251101',
+    'fbyfechafin':'20251130',
     'fbyatiende':'DEALER'
 }
 params_total = {
     'origen':MARCA,
-    'fbyfechaini':'20251001',
-    'fbyfechafin':'20251021',
+    'fbyfechaini':'20251101',
+    'fbyfechafin':'20251130',
 }
 # Primer peticion para obtener datos
 current_page = 1
