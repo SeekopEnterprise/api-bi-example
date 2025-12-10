@@ -152,8 +152,8 @@ try:
     )"""
 
     common_params = {
-        "fbyfechaini": "20251001",
-        "fbyfechafin": "20251014",
+        "fbyfechaini": "20251201",
+        "fbyfechafin": "20251208",
         "frecuencia": "DIARIA",
         "gby": "zona,region,plaza,distribuidor,auto,fuenteinformacion,subcampana,ejecutivo"
     }
