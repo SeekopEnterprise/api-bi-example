@@ -186,35 +186,35 @@ try:
     total_database_citas = 0
 
     for row in fulldata:
-        total_leads += int(row['prospectos'])
-        total_valid += int(row['asignados'])
-        total_shows += int(row['shows'])
-        total_test_drive += int(row['prospectoscondemo'])
-        total_quotes += int(row['prospectosconcotizacion'])
-        total_sales += int(row['ventasfacturadas'])
-        total_delivery += int(row['ventasentregadas'])
+        total_leads += row['prospectos']
+        total_valid += row['asignados']
+        total_shows += row['shows']
+        total_test_drive += row['prospectoscondemo']
+        total_quotes += row['prospectosconcotizacion']
+        total_sales += row['ventasfacturadas']
+        total_delivery += row['ventasentregadas']
 
-        total_walkin_leads += int(row['prospectospiso'])
-        total_street_leads += int(row['prospectoscalle'])
-        total_database_leads += int(row['prospectoscartera'])
-        total_digital_leads += int(row['leads'])
+        total_walkin_leads += row['prospectospiso']
+        total_street_leads += row['prospectoscalle']
+        total_database_leads += row['prospectoscartera']
+        total_digital_leads += row['leads']
 
-        total_walkin_valid += int(row['asignadospiso'])
-        total_street_valid += int(row['asignadoscalle'])
-        total_database_valid += int(row['asignadoscartera'])
-        total_digital_valid += int(row['asignadosleads'])
+        total_walkin_valid += row['asignadospiso']
+        total_street_valid += row['asignadoscalle']
+        total_database_valid += row['asignadoscartera']
+        total_digital_valid += row['asignadosleads']
 
-        total_quotes += int(row['cotizaciones'])
-        total_quotes_walkin += int(row['cotizacionespiso'])
-        total_quotes_street += int(row['cotizacionescalle'])
-        total_quotes_db += int(row['cotizacionescartera'])
-        total_quotes_digital += int(row['cotizacionesleads'])
+        total_quotes += row['cotizaciones']
+        total_quotes_walkin += row['cotizacionespiso']
+        total_quotes_street += row['cotizacionescalle']
+        total_quotes_db += row['cotizacionescartera']
+        total_quotes_digital += row['cotizacionesleads']
 
-        total_quotes_unique += int(row['prospectosconcotizacion'])
-        total_quotes_walkin_unique += int(row['prospectosconcotizacionpiso'])
-        total_quotes_street_unique += int(row['prospectosconcotizacioncalle'])
-        total_quotes_db_unique += int(row['prospectosconcotizacioncartera'])
-        total_quotes_digital_unique += int(row['prospectosconcotizacionleads'])
+        total_quotes_unique += row['prospectosconcotizacion']
+        total_quotes_walkin_unique += row['prospectosconcotizacionpiso']
+        total_quotes_street_unique += row['prospectosconcotizacioncalle']
+        total_quotes_db_unique += row['prospectosconcotizacioncartera']
+        total_quotes_digital_unique += row['prospectosconcotizacionleads']
 
         total_inactive += float(row['prospectosinactivos'])
         total_walkin_inactive += float(row['prospectosinactivospiso'])
@@ -226,17 +226,17 @@ try:
         if(row['intentadosminutos'] ):
             intentados_minutos += float(row['intentadosminutos'])
 
-        total_apartados += int(row['apartados'])
-        total_walkin_apartados += int(row['apartadospiso'])
-        total_street_apartados += int(row['apartadoscalle'])
-        total_database_apartados += int(row['apartadoscartera'])
-        total_digital_apartados += int(row['apartadosleads'])
+        total_apartados += row['apartados']
+        total_walkin_apartados += row['apartadospiso']
+        total_street_apartados += row['apartadoscalle']
+        total_database_apartados += row['apartadoscartera']
+        total_digital_apartados += row['apartadosleads']
 
-        total_citas += int(row['citas'])
-        total_walkin_citas += int(row['citaspiso'])
-        total_street_citas += int(row['citascalle'])
-        total_database_citas += int(row['citascartera'])
-        total_digital_citas += int(row['citasleads'])
+        total_citas += row['citas']
+        total_walkin_citas += row['citaspiso']
+        total_street_citas += row['citascalle']
+        total_database_citas += row['citascartera']
+        total_digital_citas += row['citasleads']
 
     logging.info(f'===== DOWNLOAD INFO =====')
     logging.info(f'Total Leads: {total_leads}')
