@@ -82,20 +82,20 @@ headers = {
 
 params_cac = {
     'origen':MARCA,
-    'fbyfechaini':'20251101',
-    'fbyfechafin':'20251130',
+    "fbyfechaini": "20251202",
+    "fbyfechafin": "20260102",
     'fbyatiende':'CAC'
 }
 params_dealer = {
     'origen':MARCA,
-    'fbyfechaini':'20251101',
-    'fbyfechafin':'20251130',
+    "fbyfechaini": "20251202",
+    "fbyfechafin": "20260102",
     'fbyatiende':'DEALER'
 }
 params_total = {
     'origen':MARCA,
-    'fbyfechaini':'20251101',
-    'fbyfechafin':'20251130',
+    "fbyfechaini": "20251202",
+    "fbyfechafin": "20260102",
 }
 # Primer peticion para obtener datos
 current_page = 1
@@ -142,15 +142,21 @@ print(f'Total Items: {len(fulldata)}')
 total_prospectos = 0
 total_prospectos_digitales = 0
 total_prospectos_inactivos = 0
+total_ventas = 0
+total_ventas_digitales = 0
 
 for row in fulldata:
     total_prospectos += int(row['prospectos'])
     total_prospectos_digitales += int(row['leads'])
     total_prospectos_inactivos += float(row['prospectosinactivos'])
+    total_ventas += int(row["ventasentregadas"])
+    total_ventas_digitales += int(row["ventasentregadasleads"])
 
 print(f'Prospectos: {total_prospectos}')
 print(f'ProspectosDigitales: {total_prospectos_digitales}')
 print(f'ProspectosInactivos: {total_prospectos_inactivos}')
+print(f"Ventas: {total_ventas}")
+print(f"VentasDigitales: {total_ventas_digitales}")
 
 total_time = time.time() - start_time
 
