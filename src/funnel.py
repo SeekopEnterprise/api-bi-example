@@ -1,10 +1,14 @@
 import asyncio
 import time
+import logging
 from os import getenv
 
 import aiohttp
 import requests
 from dotenv import load_dotenv
+
+# Configurar logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 load_dotenv()
 
@@ -24,7 +28,6 @@ MARCA = get_env_var("MARCA")
 
 URL_AUTH_ENDPOINT = "https://api.sicopweb.com/auth/v3/token"
 URL_ENDPOINT_SERVICE = "https://api.sicopweb.com/funnel/prod/indicadores/nacional/detalle"
-
 
 class UserCredentials:
 
@@ -47,18 +50,20 @@ def get_access_token(user_credentials: UserCredentials, client_credentials: Clie
         "client_id": client_credentials.client_id,
         "secret_key": client_credentials.secret_key,
     }
+    # Encabezados de la solicitud
+    headers = {"Content-type": "application/x-www-form-urlencoded"}
 
-    headers = {
-        "Content-type": "application/x-www-form-urlencoded",
-    }
-
-    response = requests.post(URL_AUTH_ENDPOINT, data=data, headers=headers)
-    response.raise_for_status()
-
-    respuesta_json = response.json()
-    token = respuesta_json["token"]
-
-    return token
+    try:
+        response = requests.post(URL_AUTH_ENDPOINT, data=data, headers=headers)
+        response.raise_for_status()
+        respuesta_json = response.json()
+        token = respuesta_json.get("token")
+        if not token:
+            raise ValueError("Token no presente en la respuesta")
+        return token
+    except Exception as e:
+        logging.error(f"Error al obtener el token de acceso: {e}")
+        return None
 
 
 async def fetch_page(session: aiohttp.ClientSession, headers: dict, params: dict, semaphore: asyncio.Semaphore):
@@ -68,7 +73,7 @@ async def fetch_page(session: aiohttp.ClientSession, headers: dict, params: dict
             current_page = int(response.headers.get("x-sicop-api-current-page", params.get("page", 1)))
             total_pages = int(response.headers.get("x-sicop-api-pages", 1))
             data = await response.json()
-            print(f"Pagina: {current_page} de {total_pages}, Total Items: {len(data)}")
+            logging.info(f"Pagina: {current_page} de {total_pages}, Total Items: {len(data)}")
             return current_page, total_pages, data
 
 
@@ -102,8 +107,11 @@ async def main():
     user = UserCredentials(email=EMAIL_USER, pwd=PWD_USER)
     client = ClientCredentials(client_id=CLIENT_ID, secret_key=SECRET_KEY)
 
-    print("Obteniendo token de acceso...")
+    logging.info('Get Access Token...')
     token = get_access_token(user, client)
+
+    if not token:
+        return
 
     headers = {
         "Content-Type": "application/json",
@@ -130,15 +138,16 @@ async def main():
 
     common_params = params_total
 
-    print("Solicitando datos...")
+    logging.info('Request data...')
     try:
         fulldata, total_pages = await fetch_all_pages(headers, common_params, max_concurrency=5)
     except (aiohttp.ClientError, asyncio.CancelledError) as e:
-        print(f"Error al obtener datos: {e}")
+        logging.error(f"Error al obtener datos: {e}")
         return
 
-    print(f"Total Items: {len(fulldata)}")
+    logging.info(f"Total Items: {len(fulldata)}")
 
+    # Calculamos total de prospectos acumulados en fulldata
     total_prospectos = 0
     total_prospectos_digitales = 0
     total_prospectos_inactivos = 0
@@ -146,21 +155,20 @@ async def main():
     total_ventas_digitales = 0
 
     for row in fulldata:
-        total_prospectos += int(row["prospectos"])
-        total_prospectos_digitales += int(row["leads"])
-        total_prospectos_inactivos += float(row["prospectosinactivos"])
+        total_prospectos += int(row['prospectos'])
+        total_prospectos_digitales += int(row['leads'])
+        total_prospectos_inactivos += float(row['prospectosinactivos'])
         total_ventas += int(row["ventasentregadas"])
         total_ventas_digitales += int(row["ventasentregadasleads"])
 
-    print(f"Prospectos: {total_prospectos}")
-    print(f"ProspectosDigitales: {total_prospectos_digitales}")
-    print(f"ProspectosInactivos: {total_prospectos_inactivos}")
-    print(f"Ventas: {total_ventas}")
-    print(f"VentasDigitales: {total_ventas_digitales}")
+    logging.info(f'Prospectos: {total_prospectos}')
+    logging.info(f'ProspectosDigitales: {total_prospectos_digitales}')
+    logging.info(f'ProspectosInactivos: {total_prospectos_inactivos}')
+    logging.info(f"Ventas: {total_ventas}")
+    logging.info(f"VentasDigitales: {total_ventas_digitales}")
 
     total_time = time.time() - start_time
-    print(f"Tiempo Total: {total_time} s")
-
+    logging.info(f'Tiempo Total: {total_time} s')
 
 if __name__ == "__main__":
     asyncio.run(main())

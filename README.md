@@ -24,14 +24,29 @@ api-bi-example$ pip install -r requirements.txt
 
 ## Ejecucion
 
-Primero reemplaza los valores de las variables:
+Crear un archivo llamado .env
+
+``` bash
+api-bi-example$ mkdir .env
+```
+
+Edita del archivo y declara las siguientes variables, asignando las credenciales proporcionadas por el equipo de SEEKOP
 
 - EMAIL_USER
 - PWD_USER
 - CLIENT_ID
 - SECRET_KEY
+- MARCA
 
-Con las credenciales proporcionadas por el equipo de SEEKOP
+Ejemplo:
+
+``` bash
+EMAIL_USER = 'USUARIO'
+PWD_USER   = 'PASSWORD'
+CLIENT_ID  = 'ID'
+SECRET_KEY = 'SECRET_KEY'
+MARCA      = 'MIMARCA'
+```
 
 Una vez actualizadas solo ejecuta:
 
