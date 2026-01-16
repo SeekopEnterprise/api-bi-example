@@ -86,8 +86,8 @@ try:
     current_page = 1
     common_params = {
         'origen':MARCA,
-        'fbyfechaini':'20251101', 
-        'fbyfechafin':'20251130'
+        'fbyfechaini':'20251201', 
+        'fbyfechafin':'20251231'
     }
     params = {**common_params, "page": current_page}
 
