@@ -1,8 +1,11 @@
 import requests
 import time
-
+import logging
 from os import getenv
 from dotenv import load_dotenv
+
+# Configurar logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 load_dotenv()
 
@@ -19,7 +22,7 @@ SECRET_KEY = get_env_var("SECRET_KEY")
 MARCA      = get_env_var("MARCA")
 
 URL_AUTH_ENDPOINT = "https://api.sicopweb.com/auth/v3/token"
-URL_ENDPOINT_SERVICE = f"https://api.sicopweb.com/funnel/prod/indicadores/nacional/detalle"
+URL_ENDPOINT_SERVICE = f"https://api.sicopweb.com/funnel/qa/indicadores/nacional/detalle"
 
 class UserCredentials:
 
@@ -41,24 +44,20 @@ def get_access_token(userCredentials: UserCredentials, clientCredentials: Client
         'client_id': clientCredentials.client_id,
         'secret_key': clientCredentials.secret_key
     }
-
     # Encabezados de la solicitud
-    headers = {
-        'Content-type': 'application/x-www-form-urlencoded'
-    }
+    headers = {"Content-type": "application/x-www-form-urlencoded"}
 
-    # Realizar la petición POST
-    response = requests.post( URL_AUTH_ENDPOINT, data=data, headers=headers)
-    response.raise_for_status()
-    # Verificar el código de estado de la respuesta
-
-    # Obtener los datos de respuesta como un diccionario de Python
-    respuesta_json = response.json()
-        
-    # Acceder a los datos devueltos
-    token = respuesta_json['token']
-
-    return token
+    try:
+        response = requests.post(URL_AUTH_ENDPOINT, data=data, headers=headers)
+        response.raise_for_status()
+        respuesta_json = response.json()
+        token = respuesta_json.get("token")
+        if not token:
+            raise ValueError("Token no presente en la respuesta")
+        return token
+    except Exception as e:
+        logging.error(f"Error al obtener el token de acceso: {e}")
+        return None
 
 def get_data(params, headers):
     response = requests.request('GET', URL_ENDPOINT_SERVICE, headers=headers, params=params)
@@ -70,9 +69,12 @@ start_time = time.time()
 user = UserCredentials(email=EMAIL_USER,pwd=PWD_USER)
 client = ClientCredentials(client_id=CLIENT_ID,secret_key=SECRET_KEY)
 
-print('Obteniendo token de acceso...')
+logging.info('Get Access Token...')
 # Obtenemos el token de acceso
 token = get_access_token(user, client)
+
+if not token:
+    exit(1)
 
 # Encabezados necesarios con token de acceso
 headers = {
@@ -94,47 +96,51 @@ params_dealer = {
 }
 params_total = {
     'origen':MARCA,
-    "fbyfechaini": "20251202",
-    "fbyfechafin": "20260102",
+    "fbyfechaini": "20260103",
+    "fbyfechafin": "20260115",
 }
 # Primer peticion para obtener datos
 current_page = 1
 common_params = params_total
-params = common_params | {
-    'page': current_page
-}
+params = {**common_params, "page": current_page}
 
 fulldata = []
-print('Solicitando datos...')
 try:
+    logging.info('Request data...')
     response = get_data(params, headers)
     total_pages = int(response.headers.get('x-sicop-api-pages', 1))
     current_page = int(response.headers.get('x-sicop-api-current-page', 1))
 except requests.exceptions.HTTPError as e:
-    print(e)
+    logging.error(f"General Error: {e}")
 
 #Parseamos el resultado
 data = response.json()
+if not isinstance(data, list):
+    raise ValueError("Unexpected response: response not is dictionary")
+
+total_records = len(data)
 fulldata.extend(data)
+
 #Solo imprimir el total de elementos descargados en la iteraccion
-print(f'Pagina: {current_page} de {total_pages}, Total Items: {len(data)}')
+logging.info(f'Page: {current_page} of {total_pages}, Total records: {total_records}')
 
 # Recorrido para obtener resto de paginas
 while(current_page < total_pages):
+    current_page = current_page + 1
+    params = {**common_params, "page": current_page}
     try:
-        current_page = current_page + 1
-        params = common_params | {
-                'page': current_page
-        }
         response = get_data(params, headers)
         current_page = int(response.headers.get('x-sicop-api-current-page', current_page))
         #Parseamos el resultado
         data = response.json()
+        if not isinstance(data, list):
+            raise ValueError("Unexpected response in pages iterations")
+        total_records = len(data)
         #Solo imprimir el total de elementos descargados en la iteraccion
-        print(f'Pagina: {current_page} de {total_pages}, Total Items: {len(data)}')
+        logging.info(f'Page: {current_page} de {total_pages}, Total records: {total_records}')
         fulldata.extend(data)
-    except requests.exceptions.HTTPError as e:
-        print(e)
+    except Exception as e:
+        logging.error(f"Error in page {current_page}: {e}")
 
 print(f'Total Items: {len(fulldata)}')
 
@@ -152,12 +158,12 @@ for row in fulldata:
     total_ventas += int(row["ventasentregadas"])
     total_ventas_digitales += int(row["ventasentregadasleads"])
 
-print(f'Prospectos: {total_prospectos}')
-print(f'ProspectosDigitales: {total_prospectos_digitales}')
-print(f'ProspectosInactivos: {total_prospectos_inactivos}')
-print(f"Ventas: {total_ventas}")
-print(f"VentasDigitales: {total_ventas_digitales}")
+logging.info(f'Prospectos: {total_prospectos}')
+logging.info(f'ProspectosDigitales: {total_prospectos_digitales}')
+logging.info(f'ProspectosInactivos: {total_prospectos_inactivos}')
+logging.info(f"Ventas: {total_ventas}")
+logging.info(f"VentasDigitales: {total_ventas_digitales}")
 
 total_time = time.time() - start_time
 
-print(f'Tiempo Total: {total_time} s')
+logging.info(f'Tiempo Total: {total_time} s')
