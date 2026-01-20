@@ -27,7 +27,7 @@ api-bi-example$ pip install -r requirements.txt
 Crear un archivo llamado .env
 
 ``` bash
-api-bi-example$ mkdir .env
+api-bi-example$ echo. > .env
 ```
 
 Edita del archivo y declara las siguientes variables, asignando las credenciales proporcionadas por el equipo de SEEKOP
