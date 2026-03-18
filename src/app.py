@@ -84,8 +84,8 @@ try:
     # Primer peticion para obtener datos
     current_page = 1
     common_params = {
-        "fbyfechaini": "20260101",
-        "fbyfechafin": "20260126",
+        "fbyfechaini": "20260301",
+        "fbyfechafin": "20260316",
         "frecuencia": "DIARIA",
         "gby": "zona,region,plaza,distribuidor,auto,fuenteinformacion,subcampana"
     }
@@ -122,6 +122,12 @@ try:
             logging.error(f"Error en la página {current_page}: {e}")
 
     logging.info(f'Total Items: {len(fulldata)}')
+
+    # Determinar anio, mes y dia máximos recibidos en la respuesta
+    max_anio = max(int(row['anio']) for row in fulldata)
+    max_mes = max(int(row['mes']) for row in fulldata if int(row['anio']) == max_anio)
+    max_dia = max(int(row['dia']) for row in fulldata if int(row['anio']) == max_anio and int(row['mes']) == max_mes)
+    logging.info(f'Fecha máxima recibida: {max_anio}/{max_mes:02d}/{max_dia:02d}')
 
     # Calculamos total de prospectos acumulados en fulldata
     total_prospectos = 0
