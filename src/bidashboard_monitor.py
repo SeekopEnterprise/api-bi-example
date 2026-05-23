@@ -144,6 +144,22 @@ def build_dashboard_url(bi_token: str, fechainicio: str, fechafin: str) -> str:
     return f"{URL_DASHBOARD_BASE}?{query}"
 
 
+JSESSIONID_NODE_RE = re.compile(r"([^;\s]+\.(node\d+))")
+
+
+def extract_node(jsessionid_value: Optional[str]) -> tuple[Optional[str], Optional[str]]:
+    """Recibe el valor de la cookie JSESSIONID (ej. 'F9B96B9021FE390A9D86417EDB5A1AA9.node1').
+
+    Devuelve (jsessionid_completo, node) o (None, None) si no matchea el patrón esperado.
+    """
+    if not jsessionid_value:
+        return None, None
+    match = JSESSIONID_NODE_RE.search(jsessionid_value)
+    if not match:
+        return None, None
+    return match.group(1), match.group(2)
+
+
 def main() -> int:
     config = load_config()
     if config is None:
