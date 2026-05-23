@@ -133,6 +133,17 @@ def compute_date_range(today: Optional[date] = None) -> tuple[str, str]:
     return fechainicio.isoformat(), ayer.isoformat()
 
 
+def build_dashboard_url(bi_token: str, fechainicio: str, fechafin: str) -> str:
+    params = {
+        **DASHBOARD_PARAMS_STATIC,
+        "fechainicio": fechainicio,
+        "fechafin": fechafin,
+        "bi_token": bi_token,
+    }
+    query = "&".join(f"{k}={quote(str(v), safe='')}" for k, v in params.items())
+    return f"{URL_DASHBOARD_BASE}?{query}"
+
+
 def main() -> int:
     config = load_config()
     if config is None:
@@ -146,6 +157,9 @@ def main() -> int:
     if not bi_token:
         return 2
     logging.info(f"bi_token obtenido (longitud={len(bi_token)})")
+    dashboard_url = build_dashboard_url(bi_token, fechainicio, fechafin)
+    logging.info(f"URL construida (longitud={len(dashboard_url)})")
+    logging.debug(f"URL completa: {dashboard_url}")
     return 0
 
 
