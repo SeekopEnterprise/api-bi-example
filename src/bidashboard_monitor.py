@@ -47,6 +47,38 @@ ERROR_PATTERNS = (
 REQUEST_TIMEOUT_SECONDS = 30
 
 
+class UserCredentials:
+    def __init__(self, email: str, pwd: str):
+        self.email = email
+        self.pwd = pwd
+
+
+class ClientCredentials:
+    def __init__(self, client_id: str, secret_key: str):
+        self.client_id = client_id
+        self.secret_key = secret_key
+
+
+def get_access_token(user: UserCredentials, client: ClientCredentials) -> Optional[str]:
+    data = {
+        "email": user.email,
+        "pwd": user.pwd,
+        "client_id": client.client_id,
+        "secret_key": client.secret_key,
+    }
+    headers = {"Content-type": "application/x-www-form-urlencoded"}
+    try:
+        response = requests.post(URL_AUTH_ENDPOINT, data=data, headers=headers, timeout=REQUEST_TIMEOUT_SECONDS)
+        response.raise_for_status()
+        token = response.json().get("token")
+        if not token:
+            raise ValueError("Token no presente en la respuesta")
+        return token
+    except Exception as e:
+        logging.error(f"Error al obtener bi_token: {e}")
+        return None
+
+
 def get_env_var(key: str, default: Optional[str] = None, required: bool = False) -> Optional[str]:
     value = getenv(key, default)
     if required and not value:
@@ -108,6 +140,12 @@ def main() -> int:
     logging.info(f"Config cargada. Nodos objetivo: {sorted(config['nodes'])}")
     fechainicio, fechafin = compute_date_range()
     logging.info(f"Rango de fechas: {fechainicio} a {fechafin}")
+    user = UserCredentials(email=config["email"], pwd=config["pwd"])
+    client = ClientCredentials(client_id=config["client_id"], secret_key=config["secret_key"])
+    bi_token = get_access_token(user, client)
+    if not bi_token:
+        return 2
+    logging.info(f"bi_token obtenido (longitud={len(bi_token)})")
     return 0
 
 
