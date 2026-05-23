@@ -90,11 +90,24 @@ def load_config() -> Optional[dict]:
     }
 
 
+def compute_date_range(today: Optional[date] = None) -> tuple[str, str]:
+    """Devuelve (fechainicio, fechafin) en formato YYYY-MM-DD.
+
+    fechafin = ayer; fechainicio = primer día del mes de ayer.
+    """
+    today = today or date.today()
+    ayer = today - timedelta(days=1)
+    fechainicio = ayer.replace(day=1)
+    return fechainicio.isoformat(), ayer.isoformat()
+
+
 def main() -> int:
     config = load_config()
     if config is None:
         return 2
     logging.info(f"Config cargada. Nodos objetivo: {sorted(config['nodes'])}")
+    fechainicio, fechafin = compute_date_range()
+    logging.info(f"Rango de fechas: {fechainicio} a {fechafin}")
     return 0
 
 
