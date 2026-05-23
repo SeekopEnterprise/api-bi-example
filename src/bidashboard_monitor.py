@@ -160,6 +160,16 @@ def extract_node(jsessionid_value: Optional[str]) -> tuple[Optional[str], Option
     return match.group(1), match.group(2)
 
 
+def is_dashboard_ok(status_code: int, body: str) -> tuple[bool, Optional[str]]:
+    """Devuelve (ok, reason_si_no_ok)."""
+    if status_code != 200:
+        return False, f"status={status_code}"
+    for pattern in ERROR_PATTERNS:
+        if pattern in body:
+            return False, f"body contiene '{pattern}'"
+    return True, None
+
+
 def main() -> int:
     config = load_config()
     if config is None:
