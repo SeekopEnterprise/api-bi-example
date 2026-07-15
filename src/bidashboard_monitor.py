@@ -22,8 +22,6 @@ URL_DASHBOARD_BASE = (
 )
 
 DASHBOARD_PARAMS_STATIC = {
-    "userid": "***REDACTED-USERID***",
-    "password": "***REDACTED-CREDENTIAL-ROTATED***",
     "basedwh": "dwhchrysler",
     "marca": "TODOS",
     "auto": "TODOS",
@@ -92,8 +90,10 @@ def load_config() -> Optional[dict]:
     pwd = get_env_var("BI_MONITOR_PWD", required=True)
     client_id = get_env_var("BI_MONITOR_CLIENT_ID", required=True)
     secret_key = get_env_var("BI_MONITOR_SECRET_KEY", required=True)
+    dashboard_user = get_env_var("BI_MONITOR_DASHBOARD_USER", required=True)
+    dashboard_password = get_env_var("BI_MONITOR_DASHBOARD_PASSWORD", required=True)
 
-    if not all([email, pwd, client_id, secret_key]):
+    if not all([email, pwd, client_id, secret_key, dashboard_user, dashboard_password]):
         return None
 
     nodes_csv = get_env_var("BI_MONITOR_NODES", default="node1,node3,node4") or ""
@@ -115,6 +115,8 @@ def load_config() -> Optional[dict]:
         "pwd": pwd,
         "client_id": client_id,
         "secret_key": secret_key,
+        "dashboard_user": dashboard_user,
+        "dashboard_password": dashboard_password,
         "nodes": nodes,
         "max_attempts": max_attempts,
         "same_node_threshold": same_node_threshold,
@@ -133,8 +135,12 @@ def compute_date_range(today: Optional[date] = None) -> tuple[str, str]:
     return fechainicio.isoformat(), ayer.isoformat()
 
 
-def build_dashboard_url(bi_token: str, fechainicio: str, fechafin: str) -> str:
+def build_dashboard_url(
+    dashboard_user: str, dashboard_password: str, bi_token: str, fechainicio: str, fechafin: str
+) -> str:
     params = {
+        "userid": dashboard_user,
+        "password": dashboard_password,
         **DASHBOARD_PARAMS_STATIC,
         "fechainicio": fechainicio,
         "fechafin": fechafin,
@@ -183,7 +189,9 @@ def main() -> int:
     if not bi_token:
         return 2
     logging.info(f"bi_token obtenido (longitud={len(bi_token)})")
-    dashboard_url = build_dashboard_url(bi_token, fechainicio, fechafin)
+    dashboard_url = build_dashboard_url(
+        config["dashboard_user"], config["dashboard_password"], bi_token, fechainicio, fechafin
+    )
     logging.info(f"URL construida (longitud={len(dashboard_url)})")
     logging.debug(f"URL completa: {dashboard_url}")
     return 0
